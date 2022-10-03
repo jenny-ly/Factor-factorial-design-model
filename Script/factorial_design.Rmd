@@ -1,0 +1,284 @@
+---
+title: "A2"
+author: "Jenny Ly"
+date: "16/03/2022"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+#                      Truck
+#Oil | 1         2      3       4        5
+# 1  | 0.500   0.634   0.487   0.329    0.512
+# 2  | 0.535   0.675   0.520   0.435    0.540
+# 3  | 0.513   0.595   0.488   0.400    0.510
+#--------------------------------------------------
+
+```{r}
+#Question 1
+#Analyze the data form this experiement (alpha=0.05)
+y <- c(0.500,0.634,0.487,0.329,0.512,
+       0.535,0.675,0.520,0.435,0.540,
+       0.513,0.595,0.488,0.400,0.510)
+oil.level <- rep(1:3,each=5)
+truck.level <- rep(1:5,3)
+
+oil <- factor(oil.level) #treatment = 3
+truck <- factor(truck.level) #block = 5
+
+fit <- aov(y~oil+truck,contrasts = list(oil=contr.sum, truck=contr.sum) )
+anova(fit)
+
+#base on ANOVa table, at level 0.05, the treatment means different significantly
+
+########################################################
+#B-Use the Fisher LSD method 
+#to make comparisions among the three lubricaitng oils 
+#to determine specifically which oils differ in break-specific fuel consumption 
+
+library("agricolae")
+
+test <- LSD.test(fit,trt = "oil", p.adj = "none", group = FALSE)
+test
+
+#at level at 0.05, there's significant difference 
+#between oil 1&2, and oil number 2&3 in terms of break-specific fuel consumption
+
+#C.Analyze the residuals from this experiment 
+
+# Standarized residuals and fitted values:
+rcbd.r1<-rstandard(fit)
+rcbd.fitted1<-fitted.values(fit)
+
+# Normal Q-Q plot:
+qqnorm(rcbd.r1,main="Normal Q-Q Plot")
+qqline(rcbd.r1)
+
+#normal Q-Q plot indicates an approximate straight line relationship 
+#suggests that the error distribution is approximately normal
+
+#Plot of residuals vs. fitted values:
+plot(rcbd.fitted1,rcbd.r1,ylab="Standardized residuals", 
+  xlab="Fitted values",main="Plot of residuals vs. fitted values")
+abline(h=0)
+#Comment: The plot of residuals vs fitted values verifies constant assumption
+
+# Plot of residuals vs. treatment:
+plot(oil.level,rcbd.r1,ylab="Standardized residuals", 
+  xlab=" Lubricating Oil",main="Plot of residuals vs. Treatment")
+abline(h=0)
+#Comment: No indication of inequality of variance by treatment
+
+
+# Plot of residuals vs. block:
+plot(truck.level,rcbd.r1,ylab="Standardized residuals", 
+  xlab="Truck Engines",main="Plot of residuals vs. Block")
+abline(h=0)
+#comment: Nothing unusual, all the blocks seem homogeneous 
+```
+
+```{r}
+#Question 2
+#a/ Analyze the data from this experiment, alpha = 0.05 
+batchs <- factor(c(rep(1:5,5)))
+day <- factor(c(rep(1:5, each=5)))
+ingre <- factor(c("A","C","B","D","E",
+           "B","E","A","C","D",
+           "D","A","C","E","B",
+           "C","D","E","B","A",
+           "E","B","D","A","C"))
+hour <- c(8,11,4,6,4,
+          7,2,9,8,2,
+          1,7,10,6,3,
+          7,3,1,6,8,
+          3,8,5,10,8)
+
+myfit <- lm(hour~batchs+day+ingre)
+anova(myfit)
+#base on ANOVA table, at 95% CI treatment means differ significantly
+#Differences between batches is not significant at level 0.05
+#Also at level 0.05 no significant difference between days
+
+```
+#Suppose observation from batch 3 on day 4 is missing. Estimate missing value and perform analysis using this value
+
+$p = 5$
+
+$row.prime = 4+9+10+5 = 28$
+
+$column.prime = 7+3+6+8=24$
+
+$treament.prime = 4+2+6+3=15$
+
+$grandtotal.prime=8+7+1+7+...+8 = 146$
+
+$\hat{y}_{ijk}=\frac{5.(28+24+15)-2.146}{(5-2)(5-1)}=3.58=4$
+
+```{r}
+batch2 <- factor(c(rep(1:5,5)))
+day2 <- factor(c(rep(1:5, each=5)))
+ingre2 <- factor(c("A","C","B","D","E",
+           "B","E","A","C","D",
+           "D","A","C","E","B",
+           "C","D","E","B","A",
+           "E","B","D","A","C"))
+hour2 <- c(8,11,4,6,4,
+          7,2,9,8,2,
+          1,7,10,6,3,
+          7,3,4,6,8,
+          3,8,5,10,8)
+
+myfit2 <- lm(hour2~batch2+day2+ingre2)
+anova(myfit2)
+
+#at 0.05 level, there's still significant difference in treatment means
+#batches and days effects are relatively small
+```
+```{r}
+#Question 3 
+#Analyze the data from this experiment (alpha = 0.05)
+trt <- c(2,4,6,8,10,12,14)
+k <- 3
+bib <- design.bib(trt,k,r=NULL)
+bib
+
+
+```
+$H_0:\tau_1=\tau_2=\tau_3=\tau_4=\tau_5=0$  $H_1:$ at least one $\tau_i \ne 0$
+
+$SS_T=(114)^2+(120)^2+....+(127)^2-\frac{2715}{21}=2600.29$
+
+$SS_{Blocks}={\frac13}[(381)^2+....+(378)^2]-\frac{{(2715)}^2}{21}=1114.29$
+
+$Q_1=351-\frac13[381+0+0+0+381+0+378]=-29$
+
+$Q_2=365-\frac13[381+402+0+0+0+372+0]=-20$
+
+$Q_3=388-\frac13[0+402+366+0+0+0+378]=6$
+
+$Q_4=25$
+$Q_5=32$
+$Q_6=-12$
+$Q_7=-2$
+
+$SS_{treatment}=\frac{(-29)^2+(-20)^2+(6^2)+25^2+32^2+(-12^2+(-2^2))}{1.7}=1317.43$
+
+$SS_E=2600.29-1114.29-1317.43=168.57$
+
+$MS_E=\frac{168.57}{8}=21.07$
+
+$MS_{treatment}=\frac{1317.43}{6}=219.57$
+
+$MS_{blocks}=\frac{1114.29}{6}=185.72$
+
+$F_o=\frac{219.57}{21.07}=10.42$
+
+$F_{(6,8)}=2.66833$
+
+$F_0>F_{(6,8)}$
+
+#reject hypothesis.At level 0.05 there's signifcant difference in treatments means 
+
+#MS_blocks/MS_E does not close to 1, so blocking is efficient in this model
+
+```{r}
+#Question 4
+#a. Analyze the data and draw conclusions. alpha = 0,05
+p1.y <- c(90.4,90.2,90.7,90.6,90.2,90.4,
+        90.1,90.3,90.5,90.6,89.9,90.1,
+        90.5,90.7,90.8,90.9,90.4,90.1)
+
+p1.A <- rep(c(150,160,170), each = 6)
+p1.B <- rep(rep(c(200,215,230),each= 2),3)
+p1.Af<-factor(p1.A)
+p1.Bf<-factor(p1.B)
+
+
+p1.fit1<-lm(p1.y~p1.Af*p1.Bf,
+  contrasts=list(p1.Af=contr.sum,p1.Bf=contr.sum))
+
+p1.anova<-anova(p1.fit1)
+p1.anova
+#From ANOVA table,the interaction of Temp and Press is insignificant at level 0.05
+#Temperature and Pressure means are significant difference at level 0.05 
+#other methods of comparison can be performed for further analysis 
+
+#b.Draw appropriate residual plots and comment on the model's adequacy
+p1.r1<-rstandard(p1.fit1)
+p1.fitted1<-fitted.values(p1.fit1)
+
+par(mfrow=c(2,2))
+
+# Normal Q-Q plot
+qqnorm(p1.r1,ylab="Standardized residuals",xlab="Theoretical quantiles",
+   main="Normal Q-Q Plot")
+qqline(p1.r1)
+
+# Plot of residuals vs. fitted values
+plot(p1.fitted1,p1.r1,ylab="Standardized residuals", xlab="Fitted values",
+  main="Plot of residuals vs. fitted values")
+abline(h=0)
+
+# Plot of residuals vs. temperature
+plot(p1.A,p1.r1,ylab="Standardized residuals", xlab="Temperature",
+  main="Plot of residuals vs. temperature")
+abline(h=0)
+
+# Plot of residuals vs. pressure
+plot(p1.B,p1.r1,ylab="Standardized residuals", xlab="Pressure",
+  main="Plot of residuals vs. pressure")
+abline(h=0)
+ 
+#Comment: plots indicates the violation of constant-variance assumption 
+
+#c.Use the Tukey's test to determine which levels of the pressure factor are significantly different for the data?
+p1.fit2<-aov(p1.y~p1.Af+p1.Bf,
+  contrasts=list(p1.Af=contr.sum,p1.Bf=contr.sum))
+TukeyHSD(p1.fit2)
+
+#at level of 0.05, all the levels of pressure are different significantly 
+
+#d/ Under what conditions would you operate this process?
+#interaction term is not significant 
+p4.fit1<-lm(p1.y~p1.A+I(p1.A^2)+p1.B+I(p1.B^2))
+summary(p4.fit1)
+anova(p4.fit1)
+
+press0<-seq(200,230,by=6)
+
+press1<-rep(press0,3)
+
+matr1<-factor(rep(1:3,each=length(press0)))
+
+new.data<-data.frame(p1.Af=matr1,p1.B=press1)
+
+predicted.values<-predict(p4.fit1,new.data)
+
+interaction.plot(press1,matr1,predicted.values,type="l",pch=19,fixed=T,
+   xlab="Pressure", trace.lab="Temperature",ylab="Pressure",
+   main="Yield of Chemical Process")
+
+#No interaction in interaction plot. 
+#So we can operate Tukey's test to determine which levels of pressure factor 
+#are significantly different for the data.
+```
+```{r}
+#Question5
+#A.Analyze the data.alpha=0.05
+y2 <- c(2.70,2.78,2.45,2.49,2.60,2.72,2.75,2.86,
+        2.83,2.86,2.85,2.80,2.86,2.87,2.94,2.88)
+speed <- rep(c(125,200),each=8)
+rate <- rep(rep(c(0.015,0.030,0.045,0.060),each=2),each=2)
+
+speedf <-factor(speed)
+ratef <- factor(rate)
+
+y2.fit<- lm(y2~ speedf*ratef, contrasts=list(speedf=contr.sum,ratef=contr.sum)
+             )
+anova(y2.fit)
+#I don't know why it doesn't construct the interaction of A:B in ANOVA
+```
+
+
+
